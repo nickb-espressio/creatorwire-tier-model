@@ -57,7 +57,7 @@
 </style></head><body><div class="wrap">
 
 <h1>Creator Wire: tier and pricing model</h1>
-<div class="sub">Five tiers, three pricing modes. <b>Top and Pro set their own rates</b>, no anchors. <b>Established sets their own rates too, guided</b>: they type a price and get instant feedback against what their stats justify, and asks far above the suggestion get flagged to admin at review. <b>Emerging and Starter get assigned locked rates.</b> Tier gates use smart followers, Sorsa score, current reach (median views of the last ~20 organic posts) and 30 day momentum. Follower count is never an input. Edit any number, everything recalculates live on the full creator base. Try the ask inputs in the Established list to feel the creator-side feedback.</div>
+<div class="sub">Five tiers, two pricing modes. <b>Top, Pro and Established set their own rates.</b> Creators never see a computed price: for Established we compute an <b>internal benchmark</b> that only admins see at review, next to the ask and the creator's own history, so high asks get a human comment instead of an automated number. <b>Emerging and Starter get assigned locked rates.</b> Tier gates use smart followers, Sorsa score, current reach (median views of the last ~20 organic posts) and 30 day momentum. Follower count is never an input. Edit any number, everything recalculates live on the full creator base. Try the ask inputs in the Established list to feel the admin-side flags.</div>
 
 <div class="cols">
   <div class="panel">
@@ -80,17 +80,17 @@
       <tr><td class="t">Emerging</td><td><input type="number" id="p_em_lo" value="100"></td><td><input type="number" id="p_em_hi" value="200"></td></tr>
       <tr><td class="t">Starter</td><td><input type="number" id="p_st_lo" value="50"></td><td><input type="number" id="p_st_hi" value="100"></td></tr>
     </table>
-    <div class="selfnote" style="margin-top:8px">For Established the range positions the <b>suggested</b> price (the anchor). For Emerging and Starter it is the assigned locked price. Deliverable multipliers off the post price: quote tweet 0.6x, thread 1.5x, repost 0.3x, video mention 1.5x, dedicated video 3x.</div>
+    <div class="selfnote" style="margin-top:8px">For Established the range positions the <b>internal benchmark</b> (admin-only, never shown to creators). For Emerging and Starter it is the assigned locked price. Deliverable multipliers off the post price: quote tweet 0.6x, thread 1.5x, repost 0.3x, video mention 1.5x, dedicated video 3x.</div>
   </div>
 
   <div class="panel">
-    <div class="ph">Anchor position weights % + guardrails</div>
+    <div class="ph">Internal benchmark weights % + admin flags</div>
     <table class="cfg">
       <tr><td class="t">Smart followers</td><td><input type="number" id="w_sf" value="40"></td></tr>
       <tr><td class="t">Engagement rate</td><td><input type="number" id="w_er" value="30"></td></tr>
       <tr><td class="t">Current views</td><td><input type="number" id="w_mv" value="30"></td></tr>
-      <tr><td class="t">Review flag at ×</td><td><input type="number" id="t_warn" value="1.2" step="0.1"></td></tr>
-      <tr><td class="t">Too high at ×</td><td><input type="number" id="t_bad" value="1.5" step="0.1"></td></tr>
+      <tr><td class="t">Flag at ×</td><td><input type="number" id="t_warn" value="1.2" step="0.1"></td></tr>
+      <tr><td class="t">Strong flag at ×</td><td><input type="number" id="t_bad" value="1.5" step="0.1"></td></tr>
     </table>
     <div class="btns">
       <button class="primary" onclick="copyCfg()">Copy config</button>
@@ -159,11 +159,11 @@ function render(){
     const paid=median(rs.filter(r=>r.ap).map(r=>r.ap));
     const mode=(t==="Top"||t==="Pro")?"self":(t==="Established"?"guided":"assigned");
     const prices=rs.filter(r=>r.price!=null).map(r=>r.price);
-    const pr=mode==="self"?"":((t==="Established"?"suggested: ":"assigned: ")+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):""));
+    const pr=mode==="self"?"":((t==="Established"?"benchmark: ":"assigned: ")+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):""));
     ch+=`<div class="card"><div class="tn"><span class="dot" style="background:${COLORS[t]}"></span>${t}</div>
       <div class="cnt">${rs.length}</div>
       <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}${mode==="self"?"":"<br>"+pr}</div>
-      <div class="mode ${mode}">${mode==="self"?"sets own rates":(mode==="guided"?"sets own rates, guided":"assigned rates")}</div></div>`;
+      <div class="mode ${mode}">${mode==="self"?"sets own rates":(mode==="guided"?"sets own rates":"assigned rates")}</div></div>`;
   }
   document.getElementById("cards").innerHTML=ch;
 
@@ -177,13 +177,13 @@ function render(){
     const mode=(t==="Top"||t==="Pro")?"self":(t==="Established"?"guided":"assigned");
     const open=q?(rs.length?"open":""):(t==="Top"?"open":"");
     lh+=`<details ${open}><summary><span class="dot" style="background:${COLORS[t]}"></span>${t} <span class="cnt2">${q?rs.length+" of "+total:total+" creators"}</span></summary>
-      <table class="list"><tr><th>Creator</th><th>Smart fol.</th><th>Sorsa score</th><th>Views now</th><th>30d Δ</th><th>ER %</th><th>Paid avg (hist.)</th><th>${mode==="self"?"Mode":(mode==="guided"?"Their ask vs suggested":"Assigned price")}</th></tr>`;
+      <table class="list"><tr><th>Creator</th><th>Smart fol.</th><th>Sorsa score</th><th>Views now</th><th>30d Δ</th><th>ER %</th><th>Paid avg (hist.)</th><th>${mode==="self"?"Mode":(mode==="guided"?"Ask vs internal benchmark (admin view)":"Assigned price")}</th></tr>`;
     for(const r of rs){
       const mdc=r.md==null?"muted":(r.md>=0?"up":"down");
       const mdt=r.md==null?"–":(r.md>=0?"+":"")+r.md.toFixed(1);
       let last;
       if(mode==="self") last=`<td class="muted">self</td>`;
-      else if(mode==="guided") last=`<td><div class="askwrap"><input class="ask" type="number" value="${r.price}" data-anchor="${r.price}"><span class="fb ok">Suggested $${r.price}. Looks right for this profile's stats.</span></div></td>`;
+      else if(mode==="guided") last=`<td><div class="askwrap"><input class="ask" type="number" value="${r.price}" data-anchor="${r.price}"><span class="fb ok">Benchmark $${r.price}. Within range, no flag.</span></div></td>`;
       else last=`<td class="price">$${r.price}</td>`;
       lh+=`<tr><td>${r.u}${r.flag?' <span class="flag">⚑</span>':""}${r.src==="app"?' <span class="muted">(app)</span>':""}${r.cov==="none"?' <span class="muted">(no Sorsa)</span>':""}</td>
         <td>${fmt(r.sf)}</td><td>${fmt(r.score)}</td>
@@ -206,17 +206,17 @@ document.getElementById("lists").addEventListener("input", e=>{
   const fb=inp.parentElement.querySelector(".fb");
   if(!ask || ask<=0){ fb.className="fb low"; fb.textContent="Enter a rate."; return; }
   const x=ask/anchor;
-  if(x>c.t_bad){ fb.className="fb bad"; fb.textContent=`Too high for the stats this profile is generating right now. Suggested $${anchor}.`; }
-  else if(x>c.t_warn){ fb.className="fb warn"; fb.textContent=`Above suggested $${anchor}. Goes to admin review.`; }
-  else if(x<0.8){ fb.className="fb low"; fb.textContent=`Below suggested $${anchor}. Could ask more.`; }
-  else { fb.className="fb ok"; fb.textContent=`Suggested $${anchor}. Looks right for this profile's stats.`; }
+  if(x>c.t_bad){ fb.className="fb bad"; fb.textContent=`${x.toFixed(1)}x internal benchmark ($${anchor}). Strong flag, admin comments or negotiates.`; }
+  else if(x>c.t_warn){ fb.className="fb warn"; fb.textContent=`${x.toFixed(1)}x internal benchmark ($${anchor}). Flagged on the review card.`; }
+  else if(x<0.8){ fb.className="fb low"; fb.textContent=`Below benchmark ($${anchor}).`; }
+  else { fb.className="fb ok"; fb.textContent=`Benchmark $${anchor}. Within range, no flag.`; }
 });
 
 function copyCfg(){
   const c=cfg();
   const out={tiers:{top:{smart_followers_min:c.g_el_sf,score_min:c.g_el_sc,current_median_views_min:c.g_el_mv,momentum_30d_min:c.g_el_md,pricing:"self"},
     pro:{smart_followers_min:c.g_pr_sf,score_min:c.g_pr_sc,current_median_views_min:c.g_pr_mv,momentum_30d_min:c.g_pr_md,pricing:"self"},
-    established:{smart_followers_min:c.g_es_sf,score_min:c.g_es_sc,no_sorsa_fallback_views_min:c.g_es_mv,price_range:[c.p_es_lo,c.p_es_hi],pricing:"self_guided",review_flag_multiplier:c.t_warn,too_high_multiplier:c.t_bad},
+    established:{smart_followers_min:c.g_es_sf,score_min:c.g_es_sc,no_sorsa_fallback_views_min:c.g_es_mv,price_range:[c.p_es_lo,c.p_es_hi],pricing:"self",benchmark_internal_only:true,admin_flag_multiplier:c.t_warn,admin_strong_flag_multiplier:c.t_bad},
     emerging:{smart_followers_min:c.g_em_sf,score_min:c.g_em_sc,fallback_views_min:c.g_em_mv,price_range:[c.p_em_lo,c.p_em_hi],pricing:"assigned"},
     starter:{price_range:[c.p_st_lo,c.p_st_hi],pricing:"assigned"}},
     anchor_weights:{smart_followers:c.w_sf,engagement_rate:c.w_er,current_median_views:c.w_mv},
