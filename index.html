@@ -59,7 +59,7 @@
 </style></head><body><div class="wrap">
 
 <h1>Creator Wire: tier and pricing model</h1>
-<div class="sub">Five tiers, two pricing modes. <b>Top, Pro and Established set their own rates.</b> No suggested prices are shown to creators anywhere. For Established an internal benchmark is computed for the admin review card only, so high asks get a human comment at approval. <b>Emerging and Starter get assigned locked rates.</b> Tier gates use smart followers, Sorsa score, current reach (median views of the last ~20 organic posts) and 30 day momentum. Follower count is never an input. Edit any number, everything recalculates live on the full creator base. The benchmark ranges shown for Established are admin reference only.</div>
+<div class="sub">Five tiers, two pricing modes. <b>Top, Pro and Established set their own rates.</b> No suggested prices are shown to creators anywhere. <b>Emerging and Starter get assigned locked rates.</b> Tier gates use smart followers, Sorsa score, current reach (median views of the last ~20 organic posts) and 30 day momentum. Follower count is never an input. Edit any number, everything recalculates live on the full creator base.</div>
 
 <div class="cols">
   <div class="panel">
@@ -78,21 +78,18 @@
     <div class="ph">Price ranges, $ per X post</div>
     <table class="cfg">
       <tr><th></th><th>Min $</th><th>Max $</th></tr>
-      <tr><td class="t">Established</td><td><input type="number" id="p_es_lo" value="200"></td><td><input type="number" id="p_es_hi" value="400"></td></tr>
       <tr><td class="t">Emerging</td><td><input type="number" id="p_em_lo" value="100"></td><td><input type="number" id="p_em_hi" value="200"></td></tr>
       <tr><td class="t">Starter</td><td><input type="number" id="p_st_lo" value="50"></td><td><input type="number" id="p_st_hi" value="100"></td></tr>
     </table>
-    <div class="selfnote" style="margin-top:8px">For Established the range positions the <b>internal benchmark</b> (admin-only, never shown to creators). For Emerging and Starter it is the assigned locked price. Deliverable multipliers off the post price: quote tweet 0.6x, thread 1.5x, repost 0.3x, video mention 1.5x, dedicated video 3x.</div>
+    <div class="selfnote" style="margin-top:8px">Assigned locked prices for the two managed tiers. Top, Pro and Established set their own rates. Deliverable multipliers off the post price: quote tweet 0.6x, thread 1.5x, repost 0.3x, video mention 1.5x, dedicated video 3x.</div>
   </div>
 
   <div class="panel">
-    <div class="ph">Internal benchmark weights % + admin flags</div>
+    <div class="ph">Assigned price position weights %</div>
     <table class="cfg">
       <tr><td class="t">Smart followers</td><td><input type="number" id="w_sf" value="40"></td></tr>
       <tr><td class="t">Engagement rate</td><td><input type="number" id="w_er" value="30"></td></tr>
       <tr><td class="t">Current views</td><td><input type="number" id="w_mv" value="30"></td></tr>
-      <tr><td class="t">Flag at ×</td><td><input type="number" id="t_warn" value="1.2" step="0.1"></td></tr>
-      <tr><td class="t">Strong flag at ×</td><td><input type="number" id="t_bad" value="1.5" step="0.1"></td></tr>
     </table>
     <div class="btns">
       <button class="primary" onclick="copyCfg()">Copy config</button>
@@ -119,7 +116,7 @@ const DATA = [{"u":"cryptomichnl","n":58,"al":170451,"ap":2841,"mi":48963,"er":0
 const COLORS = {Top:"#4338ca", Pro:"#6366f1", Established:"#0e7490", Emerging:"#f59e0b", Starter:"#a1a1aa"};
 const SEED_OVR = {"hackapreneur":"Pro","mookienft":"Pro"};
 let OVR = Object.assign({}, SEED_OVR, JSON.parse(localStorage.getItem("cwOverrides")||"{}"));
-const DEFAULTS = {g_el_sf:2500,g_el_sc:1250,g_el_mv:12000,g_el_md:-5,g_el_er:0.3,g_el_vr:1.5,g_pr_sf:1400,g_pr_sc:900,g_pr_mv:2000,g_pr_md:-15,g_pr_er:0.15,g_es_sf:500,g_es_sc:450,g_es_mv:20000,g_em_sf:150,g_em_sc:250,g_em_mv:5000,p_es_lo:200,p_es_hi:400,p_em_lo:100,p_em_hi:200,p_st_lo:50,p_st_hi:100,w_sf:40,w_er:30,w_mv:30,t_warn:1.2,t_bad:1.5};
+const DEFAULTS = {g_el_sf:2500,g_el_sc:1250,g_el_mv:12000,g_el_md:-5,g_el_er:0.3,g_el_vr:1.5,g_pr_sf:1400,g_pr_sc:900,g_pr_mv:2000,g_pr_md:-15,g_pr_er:0.15,g_es_sf:500,g_es_sc:450,g_es_mv:20000,g_em_sf:150,g_em_sc:250,g_em_mv:5000,p_em_lo:100,p_em_hi:200,p_st_lo:50,p_st_hi:100,w_sf:40,w_er:30,w_mv:30};
 let ROWS = [];
 
 function V(id){ return parseFloat(document.getElementById(id).value); }
@@ -143,7 +140,7 @@ function recompute(){
   const c=cfg();
   ROWS=DATA.map(r=>{const auto=tierOf(r,c); const ov=OVR[r.u]; return {...r, tier:(ov&&ov!=="auto")?ov:auto, auto:auto, pinned:!!(ov&&ov!=="auto")};});
   ROWS.forEach(r=>{ r.flag = r.ratio!=null && r.ratio<0.5 && (r.fol||0)>100000 && (r.tier==="Top"||r.tier==="Pro"); });
-  const ranges={Established:[c.p_es_lo,c.p_es_hi], Emerging:[c.p_em_lo,c.p_em_hi], Starter:[c.p_st_lo,c.p_st_hi]};
+  const ranges={Emerging:[c.p_em_lo,c.p_em_hi], Starter:[c.p_st_lo,c.p_st_hi]};
   const wsum=(c.w_sf+c.w_er+c.w_mv)||1;
   for(const t in ranges){
     const cohort=ROWS.filter(r=>r.tier===t);
@@ -165,7 +162,7 @@ function render(){
     const paid=median(rs.filter(r=>r.ap).map(r=>r.ap));
     const mode=(t==="Top"||t==="Pro"||t==="Established")?"self":"assigned";
     const prices=rs.filter(r=>r.price!=null).map(r=>r.price);
-    const pr=(t==="Established")?("benchmark (admin): "+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):"")):(mode==="assigned"?("assigned: "+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):"")):"");
+    const pr=(mode==="assigned")?("assigned: "+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):"")):"";
     ch+=`<div class="card"><div class="tn"><span class="dot" style="background:${COLORS[t]}"></span>${t}</div>
       <div class="cnt">${rs.length}</div>
       <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}${pr?"<br>"+pr:""}</div>
@@ -231,10 +228,10 @@ function copyCfg(){
   const c=cfg();
   const out={tiers:{top:{smart_followers_min:c.g_el_sf,score_min:c.g_el_sc,current_median_views_min:c.g_el_mv,momentum_30d_min:c.g_el_md,momentum_waived_if_views_over:2*c.g_el_mv,er_min_pct:c.g_el_er,view_rate_min_pct:c.g_el_vr,pricing:"self"},
     pro:{smart_followers_min:c.g_pr_sf,score_min:c.g_pr_sc,current_median_views_min:c.g_pr_mv,momentum_30d_min:c.g_pr_md,er_min_pct:c.g_pr_er,pricing:"self"},
-    established:{smart_followers_min:c.g_es_sf,score_min:c.g_es_sc,no_sorsa_fallback_views_min:c.g_es_mv,price_range:[c.p_es_lo,c.p_es_hi],pricing:"self",benchmark_internal_only:true,admin_flag_multiplier:c.t_warn,admin_strong_flag_multiplier:c.t_bad},
+    established:{smart_followers_min:c.g_es_sf,score_min:c.g_es_sc,no_sorsa_fallback_views_min:c.g_es_mv,pricing:"self"},
     emerging:{smart_followers_min:c.g_em_sf,score_min:c.g_em_sc,fallback_views_min:c.g_em_mv,price_range:[c.p_em_lo,c.p_em_hi],pricing:"assigned"},
     starter:{price_range:[c.p_st_lo,c.p_st_hi],pricing:"assigned"}},
-    anchor_weights:{smart_followers:c.w_sf,engagement_rate:c.w_er,current_median_views:c.w_mv},
+    assigned_price_weights:{smart_followers:c.w_sf,engagement_rate:c.w_er,current_median_views:c.w_mv},
     deliverable_multipliers:{post:1,quote_tweet:0.6,thread:1.5,repost:0.3,video_mention:1.5,dedicated_video:3},
     platform_fee_on_top:0.10,
     reach_definition:"median view_count of last ~20 organic posts (no replies, no retweets)",
