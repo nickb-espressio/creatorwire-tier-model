@@ -59,7 +59,7 @@
 </style></head><body><div class="wrap">
 
 <h1>Creator Wire: tier and pricing model</h1>
-<div class="sub">Five tiers, two pricing modes. <b>Top, Pro and Established set their own rates.</b> Creators never see a computed price: for Established we compute an <b>internal benchmark</b> that only admins see at review, next to the ask and the creator's own history, so high asks get a human comment instead of an automated number. <b>Emerging and Starter get assigned locked rates.</b> Tier gates use smart followers, Sorsa score, current reach (median views of the last ~20 organic posts) and 30 day momentum. Follower count is never an input. Edit any number, everything recalculates live on the full creator base. Try the ask inputs in the Established list to feel the admin-side flags.</div>
+<div class="sub">Five tiers, two pricing modes. <b>Top, Pro and Established set their own rates.</b> No suggested prices are shown to creators anywhere. For Established an internal benchmark is computed for the admin review card only, so high asks get a human comment at approval. <b>Emerging and Starter get assigned locked rates.</b> Tier gates use smart followers, Sorsa score, current reach (median views of the last ~20 organic posts) and 30 day momentum. Follower count is never an input. Edit any number, everything recalculates live on the full creator base. The benchmark ranges shown for Established are admin reference only.</div>
 
 <div class="cols">
   <div class="panel">
@@ -163,13 +163,13 @@ function render(){
   for(const t of tiers){
     const rs=ROWS.filter(r=>r.tier===t);
     const paid=median(rs.filter(r=>r.ap).map(r=>r.ap));
-    const mode=(t==="Top"||t==="Pro")?"self":(t==="Established"?"guided":"assigned");
+    const mode=(t==="Top"||t==="Pro"||t==="Established")?"self":"assigned";
     const prices=rs.filter(r=>r.price!=null).map(r=>r.price);
-    const pr=mode==="self"?"":((t==="Established"?"benchmark: ":"assigned: ")+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):""));
+    const pr=(t==="Established")?("benchmark (admin): "+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):"")):(mode==="assigned"?("assigned: "+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):"")):"");
     ch+=`<div class="card"><div class="tn"><span class="dot" style="background:${COLORS[t]}"></span>${t}</div>
       <div class="cnt">${rs.length}</div>
-      <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}${mode==="self"?"":"<br>"+pr}</div>
-      <div class="mode ${mode}">${mode==="self"?"sets own rates":(mode==="guided"?"sets own rates":"assigned rates")}</div></div>`;
+      <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}${pr?"<br>"+pr:""}</div>
+      <div class="mode ${mode}">${mode==="self"?"sets own rates":"assigned rates"}</div></div>`;
   }
   document.getElementById("cards").innerHTML=ch;
 
@@ -180,16 +180,15 @@ function render(){
     const total=rs.length;
     if(q) rs=rs.filter(r=>r.u.toLowerCase().includes(q));
     shown+=rs.length;
-    const mode=(t==="Top"||t==="Pro")?"self":(t==="Established"?"guided":"assigned");
+    const mode=(t==="Top"||t==="Pro"||t==="Established")?"self":"assigned";
     const open=q?(rs.length?"open":""):(t==="Top"?"open":"");
     lh+=`<details ${open}><summary><span class="dot" style="background:${COLORS[t]}"></span>${t} <span class="cnt2">${q?rs.length+" of "+total:total+" creators"}</span></summary>
-      <table class="list"><tr><th>Creator</th><th>Smart fol.</th><th>Sorsa score</th><th>Views now</th><th>30d Δ</th><th>ER %</th><th>Paid avg (hist.)</th><th>${mode==="self"?"Mode":(mode==="guided"?"Ask vs internal benchmark (admin view)":"Assigned price")}</th></tr>`;
+      <table class="list"><tr><th>Creator</th><th>Smart fol.</th><th>Sorsa score</th><th>Views now</th><th>30d Δ</th><th>ER %</th><th>Paid avg (hist.)</th><th>${mode==="self"?"Mode":"Assigned price"}</th></tr>`;
     for(const r of rs){
       const mdc=r.md==null?"muted":(r.md>=0?"up":"down");
       const mdt=r.md==null?"–":(r.md>=0?"+":"")+r.md.toFixed(1);
       let last;
       if(mode==="self") last=`<td class="muted">self</td>`;
-      else if(mode==="guided") last=`<td><div class="askwrap"><input class="ask" type="number" value="${r.price}" data-anchor="${r.price}"><span class="fb ok">Benchmark $${r.price}. Within range, no flag.</span></div></td>`;
       else last=`<td class="price">$${r.price}</td>`;
       const opts=["auto","Top","Pro","Established","Emerging","Starter"].map(o=>`<option value="${o}" ${((OVR[r.u]||"auto")===o)?"selected":""}>${o==="auto"?"auto":o}</option>`).join("");
       lh+=`<tr><td><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${r.u}${r.now?' <span class="muted">→ '+r.now+'</span>':""}${r.merged?' <span class="muted">(+'+r.merged+')</span>':""}${r.pinned?' <span class="flag">📌</span>':""}${r.flag?' <span class="flag">⚑</span>':""}${r.src==="app"?' <span class="muted">(app)</span>':""}${r.cov==="none"?' <span class="muted">(no Sorsa)</span>':""}</span><select class="ovr" data-u="${r.u}">${opts}</select></div></td>
