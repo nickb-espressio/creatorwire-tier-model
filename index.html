@@ -68,7 +68,7 @@
       <tr><td class="t">Pro</td><td><input type="number" id="g_pr_sf" value="1100"></td><td><input type="number" id="g_pr_sc" value="700"></td><td><input type="number" id="g_pr_mv" value="0"></td><td><input type="number" id="g_pr_md" value="-15"></td></tr>
       <tr><td class="t">Established</td><td><input type="number" id="g_es_sf" value="500"></td><td><input type="number" id="g_es_sc" value="450"></td><td class="selfnote" colspan="2">no Sorsa data: views ≥ <input type="number" id="g_es_mv" value="20000"></td></tr>
       <tr><td class="t">Emerging</td><td><input type="number" id="g_em_sf" value="150"></td><td><input type="number" id="g_em_sc" value="250"></td><td class="selfnote" colspan="2">or anyone with views ≥ <input type="number" id="g_em_mv" value="5000"></td></tr>
-      <tr><td class="t">Starter</td><td colspan="4" class="selfnote">everyone else. Admin can always override the tier at review.</td></tr>
+      <tr><td class="t">Starter</td><td colspan="4" class="selfnote">everyone else. Admin can always override the tier at review. Momentum is waived for Top when current views are at least 2x the Top views bar: big live reach proves the account is alive, score wiggle is noise.</td></tr>
     </table>
   </div>
 
@@ -123,7 +123,7 @@ function reach(r){ return r.cmv!=null ? r.cmv : (r.mi!=null ? r.mi : 0); }
 
 function tierOf(r,c){
   const s=r.score||0, sf=r.sf==null?0:r.sf, mv=reach(r), md=r.md;
-  if(sf>=c.g_el_sf && s>=c.g_el_sc && mv>=c.g_el_mv && (md==null || md>=c.g_el_md)) return "Top";
+  if(sf>=c.g_el_sf && s>=c.g_el_sc && mv>=c.g_el_mv && (md==null || md>=c.g_el_md || mv>=2*c.g_el_mv)) return "Top";
   if(sf>=c.g_pr_sf && s>=c.g_pr_sc && mv>=c.g_pr_mv && (md==null || md>=c.g_pr_md)) return "Pro";
   if((sf>=c.g_es_sf && s>=c.g_es_sc) || (r.cov==="none" && mv>=c.g_es_mv)) return "Established";
   if((sf>=c.g_em_sf && s>=c.g_em_sc) || mv>=c.g_em_mv) return "Emerging";
@@ -214,7 +214,7 @@ document.getElementById("lists").addEventListener("input", e=>{
 
 function copyCfg(){
   const c=cfg();
-  const out={tiers:{top:{smart_followers_min:c.g_el_sf,score_min:c.g_el_sc,current_median_views_min:c.g_el_mv,momentum_30d_min:c.g_el_md,pricing:"self"},
+  const out={tiers:{top:{smart_followers_min:c.g_el_sf,score_min:c.g_el_sc,current_median_views_min:c.g_el_mv,momentum_30d_min:c.g_el_md,momentum_waived_if_views_over:2*c.g_el_mv,pricing:"self"},
     pro:{smart_followers_min:c.g_pr_sf,score_min:c.g_pr_sc,current_median_views_min:c.g_pr_mv,momentum_30d_min:c.g_pr_md,pricing:"self"},
     established:{smart_followers_min:c.g_es_sf,score_min:c.g_es_sc,no_sorsa_fallback_views_min:c.g_es_mv,price_range:[c.p_es_lo,c.p_es_hi],pricing:"self",benchmark_internal_only:true,admin_flag_multiplier:c.t_warn,admin_strong_flag_multiplier:c.t_bad},
     emerging:{smart_followers_min:c.g_em_sf,score_min:c.g_em_sc,fallback_views_min:c.g_em_mv,price_range:[c.p_em_lo,c.p_em_hi],pricing:"assigned"},
