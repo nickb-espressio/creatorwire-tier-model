@@ -78,8 +78,8 @@
     <div class="ph">Price ranges, $ per X post</div>
     <table class="cfg">
       <tr><th></th><th>Min $</th><th>Max $</th></tr>
-      <tr><td class="t">Emerging</td><td><input type="number" id="p_em_lo" value="100"></td><td><input type="number" id="p_em_hi" value="200"></td></tr>
-      <tr><td class="t">Starter</td><td><input type="number" id="p_st_lo" value="50"></td><td><input type="number" id="p_st_hi" value="100"></td></tr>
+      <tr><td class="t">Emerging</td><td><input type="number" id="p_em_lo" value="50"></td><td><input type="number" id="p_em_hi" value="100"></td></tr>
+      <tr><td class="t">Starter</td><td><input type="number" id="p_st_lo" value="25"></td><td><input type="number" id="p_st_hi" value="50"></td></tr>
     </table>
     <div class="selfnote" style="margin-top:8px">Assigned locked prices for the two managed tiers. Top, Pro and Established set their own rates. Deliverable multipliers off the post price: quote tweet 0.6x, thread 1.5x, repost 0.3x, video mention 1.5x, dedicated video 3x.</div>
   </div>
@@ -116,7 +116,7 @@ const DATA = [{"u":"cryptomichnl","n":58,"al":170451,"ap":2841,"mi":48963,"er":0
 const COLORS = {Top:"#4338ca", Pro:"#6366f1", Established:"#0e7490", Emerging:"#f59e0b", Starter:"#a1a1aa"};
 const SEED_OVR = {"hackapreneur":"Pro","mookienft":"Pro"};
 let OVR = Object.assign({}, SEED_OVR, JSON.parse(localStorage.getItem("cwOverrides")||"{}"));
-const DEFAULTS = {g_el_sf:2500,g_el_sc:1250,g_el_mv:12000,g_el_md:-5,g_el_er:0.3,g_el_vr:1.5,g_pr_sf:1400,g_pr_sc:900,g_pr_mv:2000,g_pr_md:-15,g_pr_er:0.15,g_es_sf:500,g_es_sc:450,g_es_mv:20000,g_em_sf:150,g_em_sc:250,g_em_mv:5000,p_em_lo:100,p_em_hi:200,p_st_lo:50,p_st_hi:100,w_sf:40,w_er:30,w_mv:30};
+const DEFAULTS = {g_el_sf:2500,g_el_sc:1250,g_el_mv:12000,g_el_md:-5,g_el_er:0.3,g_el_vr:1.5,g_pr_sf:1400,g_pr_sc:900,g_pr_mv:2000,g_pr_md:-15,g_pr_er:0.15,g_es_sf:500,g_es_sc:450,g_es_mv:20000,g_em_sf:150,g_em_sc:250,g_em_mv:5000,p_em_lo:50,p_em_hi:100,p_st_lo:25,p_st_hi:50,w_sf:40,w_er:30,w_mv:30};
 let ROWS = [];
 
 function V(id){ return parseFloat(document.getElementById(id).value); }
