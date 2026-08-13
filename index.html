@@ -58,8 +58,8 @@
   #copied { color:#16a34a; font-size:12px; font-weight:600; display:none; }
 </style></head><body><div class="wrap">
 
-<h1>Creator Wire: creator score and pricing model</h1>
-<div class="sub">One <b>creator score, 1 to 100</b>, no tier names. Five bands (previously Top / Pro / Established / Emerging / Starter): <b>80-100 and 60-80 set their own rates</b>, 40-60 sets rates with guidance, <b>20-40 and 1-20 get assigned locked rates</b>. The band comes from the gates below; the exact number is the composite position inside the band (same weights as pricing), so one creator is a 66 and another a 75. Follower count is never an input. Edit any number, everything recalculates live on the full creator base.</div>
+<h1>Creator Wire: creator score and pricing v2</h1>
+<div class="sub">One <b>creator score, 1 to 100</b>, no tier names, and <b>everyone sets their own rates</b>. Five bands (previously Top / Pro / Established / Emerging / Starter) each carry a <b>typical price range</b> shown to the creator as guidance: green below 20% into the range, yellow 20 to 80, red above 80. Guidance applies to X native deliverables only (Post 1x, Quote RT 0.6x, Thread 1.5x, Repost 0.3x); video, podcast and TG posts are free inputs. The band comes from the gates below; the exact score is the composite position inside the band. Follower count is never an input. Edit any number, everything recalculates live.</div>
 
 <div class="cols">
   <div class="panel">
@@ -75,17 +75,20 @@
   </div>
 
   <div class="panel">
-    <div class="ph">Price ranges, $ per X post</div>
+    <div class="ph">Typical price ranges, $ per X post (guidance, not locks)</div>
     <table class="cfg">
       <tr><th></th><th>Min $</th><th>Max $</th></tr>
-      <tr><td class="t">20-40</td><td><input type="number" id="p_em_lo" value="50"></td><td><input type="number" id="p_em_hi" value="100"></td></tr>
-      <tr><td class="t">1-20</td><td><input type="number" id="p_st_lo" value="25"></td><td><input type="number" id="p_st_hi" value="50"></td></tr>
+      <tr><td class="t">80-100</td><td><input type="number" id="p0_lo" value="2000"></td><td><input type="number" id="p0_hi" value="5000"></td></tr>
+      <tr><td class="t">60-80</td><td><input type="number" id="p1_lo" value="500"></td><td><input type="number" id="p1_hi" value="2000"></td></tr>
+      <tr><td class="t">40-60</td><td><input type="number" id="p2_lo" value="100"></td><td><input type="number" id="p2_hi" value="500"></td></tr>
+      <tr><td class="t">20-40</td><td><input type="number" id="p3_lo" value="25"></td><td><input type="number" id="p3_hi" value="100"></td></tr>
+      <tr><td class="t">1-20</td><td><input type="number" id="p4_lo" value="5"></td><td><input type="number" id="p4_hi" value="25"></td></tr>
     </table>
-    <div class="selfnote" style="margin-top:8px">Assigned locked prices for the two managed bands (20-40 and 1-20). Bands 40-100 set their own rates (40-60 with guidance). Deliverable multipliers off the post price: quote tweet 0.6x, thread 1.5x, repost 0.3x, video mention 1.5x, dedicated video 3x.</div>
+    <div class="selfnote" style="margin-top:8px">Everyone self prices, these ranges only drive the input guidance (empty hint + green/yellow/red zones at 20% and 80% of the range). Guided deliverables: post 1x, quote tweet 0.6x, thread 1.5x, repost 0.3x. Video mention, dedicated video, podcast/live and TG channel post: free inputs, no guidance.</div>
   </div>
 
   <div class="panel">
-    <div class="ph">Assigned price position weights %</div>
+    <div class="ph">Score position weights %</div>
     <table class="cfg">
       <tr><td class="t">Smart followers</td><td><input type="number" id="w_sf" value="40"></td></tr>
       <tr><td class="t">Engagement rate</td><td><input type="number" id="w_er" value="30"></td></tr>
@@ -118,8 +121,9 @@ const SEED_OVR = {"hackapreneur":"Pro","mookienft":"Pro"};
 const BANDS = {Top:[80,100], Pro:[60,80], Established:[40,60], Emerging:[20,40], Starter:[1,20]};
 const LBL = t => BANDS[t][0]+"-"+BANDS[t][1];
 let OVR = Object.assign({}, SEED_OVR, JSON.parse(localStorage.getItem("cwOverrides")||"{}"));
-const DEFAULTS = {g_el_sf:2500,g_el_sc:1250,g_el_mv:12000,g_el_md:-5,g_el_er:0.3,g_el_vr:1.5,g_pr_sf:1400,g_pr_sc:900,g_pr_mv:2000,g_pr_md:-15,g_pr_er:0.15,g_es_sf:500,g_es_sc:450,g_es_mv:20000,g_em_sf:150,g_em_sc:250,g_em_mv:5000,p_em_lo:50,p_em_hi:100,p_st_lo:25,p_st_hi:50,w_sf:40,w_er:30,w_mv:30};
+const DEFAULTS = {g_el_sf:2500,g_el_sc:1250,g_el_mv:12000,g_el_md:-5,g_el_er:0.3,g_el_vr:1.5,g_pr_sf:1400,g_pr_sc:900,g_pr_mv:2000,g_pr_md:-15,g_pr_er:0.15,g_es_sf:500,g_es_sc:450,g_es_mv:20000,g_em_sf:150,g_em_sc:250,g_em_mv:5000,p0_lo:2000,p0_hi:5000,p1_lo:500,p1_hi:2000,p2_lo:100,p2_hi:500,p3_lo:25,p3_hi:100,p4_lo:5,p4_hi:25,w_sf:40,w_er:30,w_mv:30};
 let ROWS = [];
+let TYP = {};
 
 function V(id){ return parseFloat(document.getElementById(id).value); }
 function cfg(){ const c={}; for(const k in DEFAULTS){ const v=V(k); c[k]=isNaN(v)?DEFAULTS[k]:v; } return c; }
@@ -142,7 +146,7 @@ function recompute(){
   const c=cfg();
   ROWS=DATA.map(r=>{const auto=tierOf(r,c); const ov=OVR[r.u]; return {...r, tier:(ov&&ov!=="auto")?ov:auto, auto:auto, pinned:!!(ov&&ov!=="auto")};});
   ROWS.forEach(r=>{ r.flag = r.ratio!=null && r.ratio<0.5 && (r.fol||0)>100000 && (r.tier==="Top"||r.tier==="Pro"); });
-  const ranges={Emerging:[c.p_em_lo,c.p_em_hi], Starter:[c.p_st_lo,c.p_st_hi]};
+  TYP={Top:[c.p0_lo,c.p0_hi], Pro:[c.p1_lo,c.p1_hi], Established:[c.p2_lo,c.p2_hi], Emerging:[c.p3_lo,c.p3_hi], Starter:[c.p4_lo,c.p4_hi]};
   const wsum=(c.w_sf+c.w_er+c.w_mv)||1;
   for(const t in BANDS){
     const cohort=ROWS.filter(r=>r.tier===t);
@@ -151,14 +155,6 @@ function recompute(){
       const pos=(c.w_sf*pct(sfv,r.sf)+c.w_er*pct(erv,r.er)+c.w_mv*pct(mvv,reach(r)))/wsum;
       const lo=BANDS[t][0], hi=BANDS[t][1];
       r.cscore=Math.max(lo,Math.min(hi,Math.round(lo+pos*(hi-lo))));
-    });
-  }
-  for(const t in ranges){
-    const cohort=ROWS.filter(r=>r.tier===t);
-    const sfv=cohort.map(r=>r.sf), erv=cohort.map(r=>r.er), mvv=cohort.map(r=>reach(r));
-    cohort.forEach(r=>{
-      const pos=(c.w_sf*pct(sfv,r.sf)+c.w_er*pct(erv,r.er)+c.w_mv*pct(mvv,reach(r)))/wsum;
-      r.price=Math.round((ranges[t][0]+pos*(ranges[t][1]-ranges[t][0]))/5)*5;
     });
   }
   render();
@@ -171,13 +167,12 @@ function render(){
   for(const t of tiers){
     const rs=ROWS.filter(r=>r.tier===t);
     const paid=median(rs.filter(r=>r.ap).map(r=>r.ap));
-    const mode=(t==="Top"||t==="Pro"||t==="Established")?"self":"assigned";
-    const prices=rs.filter(r=>r.price!=null).map(r=>r.price);
-    const pr=(mode==="assigned")?("assigned: "+(prices.length?("$"+Math.min(...prices)+" to $"+Math.max(...prices)):"")):"";
+    const mode="self";
+    const pr="typical: $"+TYP[t][0].toLocaleString()+" to $"+TYP[t][1].toLocaleString();
     ch+=`<div class="card"><div class="tn"><span class="dot" style="background:${COLORS[t]}"></span>${LBL(t)}</div>
       <div class="cnt">${rs.length}</div>
-      <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}${pr?"<br>"+pr:""}</div>
-      <div class="mode ${mode}">${mode==="self"?"sets own rates":"assigned rates"}</div></div>`;
+      <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}<br>${pr}</div>
+      <div class="mode ${mode}">sets own rates</div></div>`;
   }
   document.getElementById("cards").innerHTML=ch;
 
@@ -188,16 +183,13 @@ function render(){
     const total=rs.length;
     if(q) rs=rs.filter(r=>r.u.toLowerCase().includes(q));
     shown+=rs.length;
-    const mode=(t==="Top"||t==="Pro"||t==="Established")?"self":"assigned";
     const open=q?(rs.length?"open":""):(t==="Top"?"open":"");
     lh+=`<details ${open}><summary><span class="dot" style="background:${COLORS[t]}"></span>${LBL(t)} <span class="cnt2">${q?rs.length+" of "+total:total+" creators"}</span></summary>
-      <table class="list"><tr><th>Creator</th><th>CW score</th><th>Smart fol.</th><th>Sorsa score</th><th>Views now</th><th>30d Δ</th><th>ER %</th><th>Paid avg (hist.)</th><th>${mode==="self"?"Mode":"Assigned price"}</th></tr>`;
+      <table class="list"><tr><th>Creator</th><th>CW score</th><th>Smart fol.</th><th>Sorsa score</th><th>Views now</th><th>30d Δ</th><th>ER %</th><th>Paid avg (hist.)</th><th>Typical (post)</th></tr>`;
     for(const r of rs){
       const mdc=r.md==null?"muted":(r.md>=0?"up":"down");
       const mdt=r.md==null?"–":(r.md>=0?"+":"")+r.md.toFixed(1);
-      let last;
-      if(mode==="self") last=`<td class="muted">self</td>`;
-      else last=`<td class="price">$${r.price}</td>`;
+      const last=`<td class="muted">$${TYP[t][0].toLocaleString()} to $${TYP[t][1].toLocaleString()}</td>`;
       const opts=["auto","Top","Pro","Established","Emerging","Starter"].map(o=>`<option value="${o}" ${((OVR[r.u]||"auto")===o)?"selected":""}>${o==="auto"?"auto":LBL(o)}</option>`).join("");
       lh+=`<tr><td><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>${r.u}${r.now?' <span class="muted">→ '+r.now+'</span>':""}${r.merged?' <span class="muted">(+'+r.merged+')</span>':""}${r.pinned?' <span class="flag">📌</span>':""}${r.flag?' <span class="flag">⚑</span>':""}${r.src==="app"?' <span class="muted">(app)</span>':""}${r.cov==="none"?' <span class="muted">(no Sorsa)</span>':""}</span><select class="ovr" data-u="${r.u}">${opts}</select></div></td>
         <td class="price">${r.cscore}</td><td>${fmt(r.sf)}</td><td>${fmt(r.score)}</td>
@@ -240,15 +232,16 @@ function copyCfg(){
   const out={tiers:{top:{smart_followers_min:c.g_el_sf,score_min:c.g_el_sc,current_median_views_min:c.g_el_mv,momentum_30d_min:c.g_el_md,momentum_waived_if_views_over:2*c.g_el_mv,er_min_pct:c.g_el_er,view_rate_min_pct:c.g_el_vr,pricing:"self"},
     pro:{smart_followers_min:c.g_pr_sf,score_min:c.g_pr_sc,current_median_views_min:c.g_pr_mv,momentum_30d_min:c.g_pr_md,er_min_pct:c.g_pr_er,pricing:"self"},
     established:{smart_followers_min:c.g_es_sf,score_min:c.g_es_sc,no_sorsa_fallback_views_min:c.g_es_mv,pricing:"self"},
-    emerging:{smart_followers_min:c.g_em_sf,score_min:c.g_em_sc,fallback_views_min:c.g_em_mv,price_range:[c.p_em_lo,c.p_em_hi],pricing:"assigned"},
-    starter:{price_range:[c.p_st_lo,c.p_st_hi],pricing:"assigned"}},
-    assigned_price_weights:{smart_followers:c.w_sf,engagement_rate:c.w_er,current_median_views:c.w_mv},
-    deliverable_multipliers:{post:1,quote_tweet:0.6,thread:1.5,repost:0.3,video_mention:1.5,dedicated_video:3},
+    emerging:{smart_followers_min:c.g_em_sf,score_min:c.g_em_sc,fallback_views_min:c.g_em_mv,pricing:"self"},
+    starter:{pricing:"self"}},
+    typical_post_ranges:{ "80-100":[c.p0_lo,c.p0_hi], "60-80":[c.p1_lo,c.p1_hi], "40-60":[c.p2_lo,c.p2_hi], "20-40":[c.p3_lo,c.p3_hi], "1-20":[c.p4_lo,c.p4_hi] },
+    price_guidance:{guided_deliverables:{post:1,quote_tweet:0.6,thread:1.5,repost:0.3},free_deliverables:["video_mention","dedicated_video","podcast_live_stream","tg_channel_post"],zones:{green_below_pos:0.2,red_from_pos:0.8},messages:{green:"Great price. Offers like this get picked first.",yellow:"Typical. Right in the usual range for your score band.",red:"Very high. Creators at your score typically charge around {mid}."},empty_hint:"Typical {low} to {high}",rounding:"under 25 to 1, under 100 to 5, under 1000 to 25, else to 100",blocking:"never, any value saves"},
+    score_position_weights:{smart_followers:c.w_sf,engagement_rate:c.w_er,current_median_views:c.w_mv},
     platform_fee_on_top:0.10,
     reach_definition:"median view_count of last ~20 organic posts (no replies, no retweets)",
     momentum_definition:"Sorsa score month_delta",
     score_bands:{top:[80,100],pro:[60,80],established:[40,60],emerging:[20,40],starter:[1,20]},
-    score_formula:"band from the gates; exact creator score = band_lo + composite percentile within the band * band width (weights = assigned_price_weights), rounded. Numeric score replaces tier names on every surface.",
+    score_formula:"band from the gates; exact creator score = band_lo + composite percentile within the band * band width (weights = score_position_weights), rounded. Numeric score replaces tier names on every surface.",
     manual_tier_overrides:OVR};
   navigator.clipboard.writeText(JSON.stringify(out,null,2)).then(()=>{
     const el=document.getElementById("copied"); el.style.display="inline";
