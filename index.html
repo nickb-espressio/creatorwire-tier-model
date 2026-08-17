@@ -168,7 +168,7 @@ function render(){
     const rs=ROWS.filter(r=>r.tier===t);
     const paid=median(rs.filter(r=>r.ap).map(r=>r.ap));
     const mode="self";
-    const pr="typical: $"+TYP[t][0].toLocaleString()+" to $"+TYP[t][1].toLocaleString();
+    const pr="typical (internal, never shown in app): $"+TYP[t][0].toLocaleString()+" to $"+TYP[t][1].toLocaleString();
     ch+=`<div class="card"><div class="tn"><span class="dot" style="background:${COLORS[t]}"></span>${LBL(t)}</div>
       <div class="cnt">${rs.length}</div>
       <div class="m">median paid: ${paid?"$"+fmt(Math.round(paid)):"–"}<br>${pr}</div>
@@ -235,7 +235,7 @@ function copyCfg(){
     emerging:{smart_followers_min:c.g_em_sf,score_min:c.g_em_sc,fallback_views_min:c.g_em_mv,pricing:"self"},
     starter:{pricing:"self"}},
     typical_post_ranges:{ "80-100":[c.p0_lo,c.p0_hi], "60-80":[c.p1_lo,c.p1_hi], "40-60":[c.p2_lo,c.p2_hi], "20-40":[c.p3_lo,c.p3_hi], "1-20":[c.p4_lo,c.p4_hi] },
-    price_guidance:{guided_deliverables:{post:1,quote_tweet:0.6,thread:1.5,repost:0.3},free_deliverables:["video_mention","dedicated_video","podcast_live_stream","tg_channel_post"],zones:{green_below_pos:0.2,red_from_pos:0.8},messages:{green:"Great price. Offers like this get picked first.",yellow:"Typical. Right in the usual range for your score band.",red:"Very high. Creators at your score typically charge around {mid}."},empty_hint:"Typical {low} to {high}",rounding:"under 25 to 1, under 100 to 5, under 1000 to 25, else to 100",blocking:"never, any value saves"},
+    price_guidance:{guided_deliverables:{post:1,quote_tweet:0.6,thread:1.5,repost:0.3},free_deliverables:["video_mention","dedicated_video","podcast_live_stream","tg_channel_post"],zones:{green_below_pos:0.2,red_from_pos:0.8},messages:{green:"Great price. Offers like this get picked first.",yellow:"Typical. Right in the usual range for your score band.",red:"Very high. Creators at your score typically charge around {mid}."},empty_hint:"none. the typical range is never shown in the UI (config only, zones react after typing; only the red message shows the mid)",rounding:"under 25 to 1, under 100 to 5, under 1000 to 25, else to 100",blocking:"never, any value saves"},
     score_position_weights:{smart_followers:c.w_sf,engagement_rate:c.w_er,current_median_views:c.w_mv},
     platform_fee_on_top:0.10,
     reach_definition:"median view_count of last ~20 organic posts (no replies, no retweets)",
