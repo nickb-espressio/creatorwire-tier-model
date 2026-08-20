@@ -59,6 +59,7 @@
 </style></head><body><div class="wrap">
 
 <h1>Creator Wire: creator score and pricing v2</h1>
+<div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:12px 16px;margin:0 0 16px;font-size:13.5px;line-height:1.55"><b>Superseded Aug 20 (TUR-2810):</b> the 1 to 100 score is replaced by follower-count tiers. <b>Nano</b> under 10K, <b>Micro</b> 10K to 50K, <b>Macro</b> 50K to 250K, <b>Mega</b> 250K+. Followers count is the only input, computed and assigned scores retire. Typical post ranges re-key to: Mega $2,000 to $5,000, Macro $500 to $2,000, Micro $100 to $500, Nano $25 to $100 (multipliers, zones and messages unchanged, range still never rendered in the app). Everything below reflects the old score model until this page is rebuilt; the <b>follower_tiers_v3</b> block in Copy config is authoritative.</div>
 <div class="sub">One <b>creator score, 1 to 100</b>, no tier names, and <b>everyone sets their own rates</b>. Five bands (previously Top / Pro / Established / Emerging / Starter) each carry a <b>typical price range</b> shown to the creator as guidance: green below 20% into the range, yellow 20 to 80, red above 80. Guidance applies to X native deliverables only (Post 1x, Quote RT 0.6x, Thread 1.5x, Repost 0.3x); video, podcast and TG posts are free inputs. The band comes from the gates below; the exact score is the composite position inside the band. Follower count is never an input. Edit any number, everything recalculates live.</div>
 
 <div class="cols">
@@ -240,6 +241,7 @@ function copyCfg(){
     platform_fee_on_top:0.10,
     reach_definition:"median view_count of last ~20 organic posts (no replies, no retweets)",
     momentum_definition:"Sorsa score month_delta",
+    follower_tiers_v3:{ note:"SUPERSEDES the score system per TUR-2810 (Aug 20). Tier = followers count only, derived, never assigned.", nano:"under 10K", micro:"10K to 50K", macro:"50K to 250K", mega:"250K+", typical_post_ranges:{mega:[2000,5000],macro:[500,2000],micro:[100,500],nano:[25,100]} },
     score_bands:{top:[80,100],pro:[60,80],established:[40,60],emerging:[20,40],starter:[1,20]},
     score_formula:"band from the gates; exact creator score = band_lo + composite percentile within the band * band width (weights = score_position_weights), rounded. Numeric score replaces tier names on every surface.",
     manual_tier_overrides:OVR};
